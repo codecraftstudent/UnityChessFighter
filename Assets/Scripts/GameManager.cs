@@ -52,6 +52,7 @@ public class GameManager : MonoBehaviour
     public GameObject blackPawn;
 
     private GameObject[,] pieces;
+    private GameObject currentlySelected;
 
     private Player white;
     private Player black;
@@ -125,7 +126,13 @@ public class GameManager : MonoBehaviour
 
     public void SelectPiece(GameObject piece)
     {
+        if(currentlySelected)
+        {
+            DeselectPiece(currentlySelected);
+        }
+
         board.SelectPiece(piece);
+        currentlySelected = piece;
     }
 
     public void DeselectPiece(GameObject piece)

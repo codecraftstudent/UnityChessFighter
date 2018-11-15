@@ -260,6 +260,8 @@ GameObject:
   m_Component:
   - component: {fileID: 892110089}
   - component: {fileID: 892110090}
+  - component: {fileID: 892110092}
+  - component: {fileID: 892110091}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -294,6 +296,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultMaterial: {fileID: 2100000, guid: 99ee945a86ab04e10975e2b882047aeb, type: 2}
   selectedMaterial: {fileID: 2100000, guid: 147201814546747499f9305e63c9f218, type: 2}
+--- !u!114 &892110091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 892110088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa41f599ff6bf6844b9ce820c9e37305, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tileHighlightPrefab: {fileID: 1333511979136996, guid: e860aff6f484c47d7b713cbebd3ee5d3,
+    type: 2}
+--- !u!114 &892110092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 892110088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a70ca621b6b91474c95d1d76156d7f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveLocationPrefab: {fileID: 1555274435638532, guid: 4cb3dfa64c6fa4774b49468d68a0845b,
+    type: 2}
+  tileHighlightPrefab: {fileID: 1333511979136996, guid: e860aff6f484c47d7b713cbebd3ee5d3,
+    type: 2}
+  attackLocationPrefab: {fileID: 1341371675672656, guid: c4a2ba9f320f1459996f001bc0387b40,
+    type: 2}
 --- !u!1001 &1207385951
 Prefab:
   m_ObjectHideFlags: 0

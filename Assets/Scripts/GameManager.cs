@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    void Start ()
+    void Start()
     {
         pieces = new GameObject[8, 8];
 
@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviour
 
     public void SelectPiece(GameObject piece)
     {
-        if(currentlySelected)
+        if (currentlySelected)
         {
             DeselectPiece(currentlySelected);
         }
@@ -151,7 +151,7 @@ public class GameManager : MonoBehaviour
 
     public Vector2Int GridForPiece(GameObject piece)
     {
-        for (int i = 0; i < 8; i++) 
+        for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
@@ -169,7 +169,8 @@ public class GameManager : MonoBehaviour
     {
         GameObject piece = PieceAtGrid(gridPoint);
 
-        if (piece == null) {
+        if (piece == null)
+        {
             return false;
         }
 
@@ -205,5 +206,30 @@ public class GameManager : MonoBehaviour
         locations.RemoveAll(tile => FriendlyPieceAt(tile));
 
         return locations;
+    }
+    public void NextPlayer()
+    {
+        Player tempPlayer = currentPlayer;
+        currentPlayer = otherPlayer;
+        otherPlayer = tempPlayer;
+    }
+    public void CapturePieceAt(Vector2Int gridPoint)
+    {
+        GameObject pieceToCapture = PieceAtGrid(gridPoint);
+        currentPlayer.capturedPieces.Add(pieceToCapture);
+        pieces[gridPoint.x, gridPoint.y] = null;
+        Destroy(pieceToCapture);
+
+        {
+            if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
+            {
+                Debug.Log(currentPlayer.name + "wins!");
+                Destroy(board.GetComponent<TileSelector>());
+                Destroy(board.GetComponent<MoveSelector>());
+            }
+
+
+
+        }
     }
 }

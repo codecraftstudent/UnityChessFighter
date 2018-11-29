@@ -44,12 +44,15 @@ public class MoveSelector : MonoBehaviour
                 {
                     GameManager.instance.Move(movingPiece, gridPoint);
                 }
+                else
+                {
+                    GameManager.instance.CapturePieceAt(gridPoint);
+                    GameManager.instance.Move(movingPiece, gridPoint);
+            
+                }
                 ExitState();
+                GameManager.instance.NextPlayer(); 
             }
-        }
-        else
-        {
-            tileHighlight.SetActive(false);
         }
 	}
 

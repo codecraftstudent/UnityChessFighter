@@ -42,6 +42,7 @@ public class Board : MonoBehaviour
     public void Test()
     {
         System.Console.WriteLine("Testing the push function");
-		System.Console.WriteLine("Computer1 push")
+        System.Console.WriteLine("Computer1 push");
+        System.Console.WriteLine("Computer2 push");
     }
 }

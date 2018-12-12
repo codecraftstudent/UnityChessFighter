@@ -44,5 +44,6 @@ public class Board : MonoBehaviour
         System.Console.WriteLine("Testing the push function");
         System.Console.WriteLine("Computer1 push");
         System.Console.WriteLine("Computer2 push");
+        System.Console.WriteLine("Computer3 push");
     }
 }

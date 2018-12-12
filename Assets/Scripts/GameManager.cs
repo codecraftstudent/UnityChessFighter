@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
     public GameObject blackPawn;
 
     private GameObject[,] pieces;
-    private GameObject currentlySelected;
+    private List<GameObject> movedPawns;
 
     private Player white;
     private Player black;
@@ -64,9 +64,10 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    void Start()
+    void Start ()
     {
         pieces = new GameObject[8, 8];
+        movedPawns = new List<GameObject>();
 
         white = new Player("white", true);
         black = new Player("black", false);
@@ -124,20 +125,72 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void SelectPiece(GameObject piece)
+    public List<Vector2Int> MovesForPiece(GameObject pieceObject)
     {
-        if (currentlySelected)
+        Piece piece = pieceObject.GetComponent<Piece>();
+        Vector2Int gridPoint = GridForPiece(pieceObject);
+        List<Vector2Int> locations = piece.MoveLocations(gridPoint);
+
+        // filter out offboard locations
+        locations.RemoveAll(gp => gp.x < 0 || gp.x > 7 || gp.y < 0 || gp.y > 7);
+
+        // filter out locations with friendly piece
+        locations.RemoveAll(gp => FriendlyPieceAt(gp));
+
+        return locations;
+    }
+
+    public void Move(GameObject piece, Vector2Int gridPoint)
+    {
+        Piece pieceComponent = piece.GetComponent<Piece>();
+        if (pieceComponent.type == PieceType.Pawn && !HasPawnMoved(piece))
         {
-            DeselectPiece(currentlySelected);
+            movedPawns.Add(piece);
         }
 
+        Vector2Int startGridPoint = GridForPiece(piece);
+        pieces[startGridPoint.x, startGridPoint.y] = null;
+        pieces[gridPoint.x, gridPoint.y] = piece;
+        board.MovePiece(piece, gridPoint);
+    }
+
+    public void PawnMoved(GameObject pawn)
+    {
+        movedPawns.Add(pawn);
+    }
+
+    public bool HasPawnMoved(GameObject pawn)
+    {
+        return movedPawns.Contains(pawn);
+    }
+
+    public void CapturePieceAt(Vector2Int gridPoint)
+    {
+        GameObject pieceToCapture = PieceAtGrid(gridPoint);
+        if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
+        {
+            Debug.Log(currentPlayer.name + " wins!");
+            Destroy(board.GetComponent<TileSelector>());
+            Destroy(board.GetComponent<MoveSelector>());
+        }
+        currentPlayer.capturedPieces.Add(pieceToCapture);
+        pieces[gridPoint.x, gridPoint.y] = null;
+        Destroy(pieceToCapture);
+    }
+
+    public void SelectPiece(GameObject piece)
+    {
         board.SelectPiece(piece);
-        currentlySelected = piece;
     }
 
     public void DeselectPiece(GameObject piece)
     {
         board.DeselectPiece(piece);
+    }
+
+    public bool DoesPieceBelongToCurrentPlayer(GameObject piece)
+    {
+        return currentPlayer.pieces.Contains(piece);
     }
 
     public GameObject PieceAtGrid(Vector2Int gridPoint)
@@ -151,7 +204,7 @@ public class GameManager : MonoBehaviour
 
     public Vector2Int GridForPiece(GameObject piece)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; i++) 
         {
             for (int j = 0; j < 8; j++)
             {
@@ -169,8 +222,7 @@ public class GameManager : MonoBehaviour
     {
         GameObject piece = PieceAtGrid(gridPoint);
 
-        if (piece == null)
-        {
+        if (piece == null) {
             return false;
         }
 
@@ -182,54 +234,10 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public bool DoesPieceBelongToCurrentPlayer(GameObject piece)
-    {
-        return currentPlayer.pieces.Contains(piece);
-    }
-
-    public void Move(GameObject piece, Vector2Int gridPoint)
-    {
-        Vector2Int startGridPoint = GridForPiece(piece);
-        pieces[startGridPoint.x, startGridPoint.y] = null;
-        pieces[gridPoint.x, gridPoint.y] = piece;
-        board.MovePiece(piece, gridPoint);
-    }
-    public List<Vector2Int> MovesForPiece(GameObject pieceObject)
-    {
-        Piece piece = pieceObject.GetComponent<Piece>();
-        Vector2Int gridPoint = GridForPiece(pieceObject);
-        List<Vector2Int> locations = piece.MoveLocations(gridPoint);
-
-        locations.RemoveAll(tile => tile.x < 0 || tile.x > 7
-            || tile.y < 0 || tile.y > 7);
-
-        locations.RemoveAll(tile => FriendlyPieceAt(tile));
-
-        return locations;
-    }
     public void NextPlayer()
     {
         Player tempPlayer = currentPlayer;
         currentPlayer = otherPlayer;
         otherPlayer = tempPlayer;
-    }
-    public void CapturePieceAt(Vector2Int gridPoint)
-    {
-        GameObject pieceToCapture = PieceAtGrid(gridPoint);
-        currentPlayer.capturedPieces.Add(pieceToCapture);
-        pieces[gridPoint.x, gridPoint.y] = null;
-        Destroy(pieceToCapture);
-
-        {
-            if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
-            {
-                Debug.Log(currentPlayer.name + "wins!");
-                Destroy(board.GetComponent<TileSelector>());
-                Destroy(board.GetComponent<MoveSelector>());
-            }
-
-
-
-        }
     }
 }

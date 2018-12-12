@@ -41,7 +41,6 @@ public class King : Piece
 
         foreach (Vector2Int dir in directions)
         {
-            Debug.Log(dir);
             Vector2Int nextGridPoint = new Vector2Int(gridPoint.x + dir.x, gridPoint.y + dir.y);
             locations.Add(nextGridPoint);
         }

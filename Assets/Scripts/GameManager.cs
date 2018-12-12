@@ -1,31 +1,6 @@
-﻿/*
- * Copyright (c) 2018 Razeware LLC
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * Notwithstanding the foregoing, you may not use, copy, modify, merge, publish, 
- * distribute, sublicense, create a derivative work, and/or sell copies of the 
- * Software in any work that is designed, intended, or marketed for pedagogical or 
- * instructional purposes related to programming, coding, application development, 
- * or information technology.  Permission for such use, copying, modification,
- * merger, publication, distribution, sublicensing, creation of derivative works, 
- * or sale is expressly withheld.
- *    
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+﻿/* 
+ * This software was modified by Codecraft Works in 2018. A copy of the original code can be found here: https://www.raywenderlich.com/5441-how-to-make-a-chess-game-with-unity
+ * Credit to Brian Broom and Razenware LLC for the original code. Said original code was modified and added to under the terms of the copyright listed in the original code.
  */
 
 using System.Collections.Generic;
@@ -52,7 +27,7 @@ public class GameManager : MonoBehaviour
     public GameObject blackPawn;
 
     private GameObject[,] pieces;
-    private GameObject currentlySelected;
+    private List<GameObject> movedPawns;
 
     private Player white;
     private Player black;
@@ -64,9 +39,10 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    void Start()
+    void Start ()
     {
         pieces = new GameObject[8, 8];
+        movedPawns = new List<GameObject>();
 
         white = new Player("white", true);
         black = new Player("black", false);
@@ -124,20 +100,72 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void SelectPiece(GameObject piece)
+    public List<Vector2Int> MovesForPiece(GameObject pieceObject)
     {
-        if (currentlySelected)
+        Piece piece = pieceObject.GetComponent<Piece>();
+        Vector2Int gridPoint = GridForPiece(pieceObject);
+        List<Vector2Int> locations = piece.MoveLocations(gridPoint);
+
+        // filter out offboard locations
+        locations.RemoveAll(gp => gp.x < 0 || gp.x > 7 || gp.y < 0 || gp.y > 7);
+
+        // filter out locations with friendly piece
+        locations.RemoveAll(gp => FriendlyPieceAt(gp));
+
+        return locations;
+    }
+
+    public void Move(GameObject piece, Vector2Int gridPoint)
+    {
+        Piece pieceComponent = piece.GetComponent<Piece>();
+        if (pieceComponent.type == PieceType.Pawn && !HasPawnMoved(piece))
         {
-            DeselectPiece(currentlySelected);
+            movedPawns.Add(piece);
         }
 
+        Vector2Int startGridPoint = GridForPiece(piece);
+        pieces[startGridPoint.x, startGridPoint.y] = null;
+        pieces[gridPoint.x, gridPoint.y] = piece;
+        board.MovePiece(piece, gridPoint);
+    }
+
+    public void PawnMoved(GameObject pawn)
+    {
+        movedPawns.Add(pawn);
+    }
+
+    public bool HasPawnMoved(GameObject pawn)
+    {
+        return movedPawns.Contains(pawn);
+    }
+
+    public void CapturePieceAt(Vector2Int gridPoint)
+    {
+        GameObject pieceToCapture = PieceAtGrid(gridPoint);
+        if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
+        {
+            Debug.Log(currentPlayer.name + " wins!");
+            Destroy(board.GetComponent<TileSelector>());
+            Destroy(board.GetComponent<MoveSelector>());
+        }
+        currentPlayer.capturedPieces.Add(pieceToCapture);
+        pieces[gridPoint.x, gridPoint.y] = null;
+        Destroy(pieceToCapture);
+    }
+
+    public void SelectPiece(GameObject piece)
+    {
         board.SelectPiece(piece);
-        currentlySelected = piece;
     }
 
     public void DeselectPiece(GameObject piece)
     {
         board.DeselectPiece(piece);
+    }
+
+    public bool DoesPieceBelongToCurrentPlayer(GameObject piece)
+    {
+        return currentPlayer.pieces.Contains(piece);
     }
 
     public GameObject PieceAtGrid(Vector2Int gridPoint)
@@ -151,7 +179,7 @@ public class GameManager : MonoBehaviour
 
     public Vector2Int GridForPiece(GameObject piece)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; i++) 
         {
             for (int j = 0; j < 8; j++)
             {
@@ -169,8 +197,7 @@ public class GameManager : MonoBehaviour
     {
         GameObject piece = PieceAtGrid(gridPoint);
 
-        if (piece == null)
-        {
+        if (piece == null) {
             return false;
         }
 
@@ -182,54 +209,10 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    public bool DoesPieceBelongToCurrentPlayer(GameObject piece)
-    {
-        return currentPlayer.pieces.Contains(piece);
-    }
-
-    public void Move(GameObject piece, Vector2Int gridPoint)
-    {
-        Vector2Int startGridPoint = GridForPiece(piece);
-        pieces[startGridPoint.x, startGridPoint.y] = null;
-        pieces[gridPoint.x, gridPoint.y] = piece;
-        board.MovePiece(piece, gridPoint);
-    }
-    public List<Vector2Int> MovesForPiece(GameObject pieceObject)
-    {
-        Piece piece = pieceObject.GetComponent<Piece>();
-        Vector2Int gridPoint = GridForPiece(pieceObject);
-        List<Vector2Int> locations = piece.MoveLocations(gridPoint);
-
-        locations.RemoveAll(tile => tile.x < 0 || tile.x > 7
-            || tile.y < 0 || tile.y > 7);
-
-        locations.RemoveAll(tile => FriendlyPieceAt(tile));
-
-        return locations;
-    }
     public void NextPlayer()
     {
         Player tempPlayer = currentPlayer;
         currentPlayer = otherPlayer;
         otherPlayer = tempPlayer;
-    }
-    public void CapturePieceAt(Vector2Int gridPoint)
-    {
-        GameObject pieceToCapture = PieceAtGrid(gridPoint);
-        currentPlayer.capturedPieces.Add(pieceToCapture);
-        pieces[gridPoint.x, gridPoint.y] = null;
-        Destroy(pieceToCapture);
-
-        {
-            if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
-            {
-                Debug.Log(currentPlayer.name + "wins!");
-                Destroy(board.GetComponent<TileSelector>());
-                Destroy(board.GetComponent<MoveSelector>());
-            }
-
-
-
-        }
     }
 }

@@ -39,4 +39,8 @@ public class Board : MonoBehaviour
         MeshRenderer renderers = piece.GetComponentInChildren<MeshRenderer>();
         renderers.material = defaultMaterial;
     }
+    public void Test()
+    {
+        System.Console.WriteLine("Testing the push function");
+    }
 }
